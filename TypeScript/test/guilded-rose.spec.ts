@@ -1,4 +1,4 @@
-import { expect } from 'chai';
+        import { expect } from 'chai';
 import { Item, GildedRose } from '../app/gilded-rose';
 
 describe('Gilded Rose', function () {
@@ -62,7 +62,18 @@ describe('Gilded Rose', function () {
         const items = gildedRose.updateQuality();
         expect(items[0].quality).to.equal(0);
     });
-
+    
+    it('"Backstage passes" Quality cannot exceed 50', function() {
+        const gildedRose = new GildedRose([ new Item('Backstage passes to a TAFKAL80ETC concert', 4, 49) ]);
+        const items = gildedRose.updateQuality();
+        expect(items[0].quality).to.equal(50);
+    });
+    
+    it('"Conjured" Quality drops twice as fast as normal items', function() {
+        const gildedRose = new GildedRose([ new Item('Conjured', 7, 15) ]);
+        const items = gildedRose.updateQuality();
+        expect(items[0].quality).to.equal(13);
+    });
 
 
 
