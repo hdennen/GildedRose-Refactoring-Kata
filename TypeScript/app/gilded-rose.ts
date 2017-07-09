@@ -11,8 +11,6 @@ export class Item {
 }
 
 export class GildedRose {
-    // set constants
-    // make conditions functions
     
     static MAX_QUALITY = 50;
     static MIN_QUALITY = 0;
@@ -77,7 +75,7 @@ export class GildedRose {
                 }
                 item.quality++;
                 
-                if (item.quality === 50) return item; // cover this with unit test.
+                if (item.quality === 50) return item;
                 
                 if (this.isWithinFiveDays(item)) {
                     item.quality++;
