@@ -34,9 +34,9 @@ describe('Gilded Rose', function () {
     });
 
     it('"Sulfuras", being a legendary item, never has to be sold', function() {
-        const gildedRose = new GildedRose([ new Item('Sulfuras, Hand of Ragnaros', 10, 80) ]);
+        const gildedRose = new GildedRose([ new Item('Sulfuras, Hand of Ragnaros', 0, 80) ]);
         const items = gildedRose.updateQuality();
-        expect(items[0].sellIn).to.equal(10);
+        expect(items[0].sellIn).to.equal(0);
     });
 
     it('"Sulfuras", being a legendary item, never decreases in Quality', function() {

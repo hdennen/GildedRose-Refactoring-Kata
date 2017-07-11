@@ -10,12 +10,30 @@ export class Item {
     }
 }
 
+Item.prototype['increaseQuality'] = function() {
+    this.quality++;
+}
+
+Item.prototype['decreaseQuality'] = function() {
+    this.quality--;
+}
+
+Item.prototype['isWithinRange'] = function (low, high) {
+    return this.sellIn > low && this.sellIn < high;
+}
+
+Item.prototype['isExpired'] = function () {
+    return this.sellIn < 0;
+}
+
+Item.prototype['hasQuality'] = function(number) {
+    return this.quality === number;
+}
+
 export class GildedRose {
     
     static MAX_QUALITY = 50;
     static MIN_QUALITY = 0;
-    static NORMAL_DEGRADATION = 1;
-    static CONJURED_DEGRADATION = GildedRose.NORMAL_DEGRADATION * 2;
     items: Array<Item>;
     handlers: any;
 
@@ -28,79 +46,70 @@ export class GildedRose {
         let obj = {};
         
         obj['default'] = (item) => {
-            item.sellIn--;
-            if (item.quality === GildedRose.MIN_QUALITY) return item;
-            item.quality--;
-    
-            if (item.sellIn < 0 && item.quality !== GildedRose.MIN_QUALITY) {
-                item.quality--;
-            }
-    
-            return item;
+            return this.defaultLogic(item);
         }
         
         obj['Aged Brie'] = (item) => {
-            item.sellIn--;
-            if (this.isQualityMax(item)) return item;
-            item.quality++;
-            return item;
+            return this.cheeseLogic(item);
         }
         
         obj['Sulfuras, Hand of Ragnaros'] = (item) => {
-            return item;
+            return this.legendaryLogic(item);
         }
         
         obj['Backstage passes to a TAFKAL80ETC concert'] = (item) => {
-            item.sellIn--;
-            if (item.sellIn < 1) {
-                item.quality = GildedRose.MIN_QUALITY;
-                return item;
-            }
-            item.quality++;
-    
-            if (item.quality === GildedRose.MAX_QUALITY) return item;
-    
-            if (this.isWithinFiveDays(item)) {
-                item.quality++;
-                if (this.isQualityMax(item)) return item;
-                item.quality++;
-                return item;
-            }
-    
-            if (this.isWithinTenDays(item)) {
-                item.quality++;
-                return item;
-            }
+            return this.backstagePassLogic(item);
         }
         
         obj['Conjured'] = (item) => {
-            item.sellIn--;
-            item.quality -= GildedRose.CONJURED_DEGRADATION;
-    
-            if (item.sellIn < 0) item.quality -= GildedRose.CONJURED_DEGRADATION;
-    
-            if (item.quality < 0) item.quality = 0;
-    
-            return item;
+            return this.defaultLogic(this.defaultLogic(item));
         }
         
         return obj;
     }
-    
-    isWithinFiveDays(item): boolean {
-        if (item.sellIn > 0 && item.sellIn < 6) return true;
+
+    legendaryLogic(item): Item {
+        item.sellIn = 0;
+        return item;
     }
-    
-    isWithinTenDays(item): boolean {
-        if (item.sellIn > 5 && item.sellIn < 11) return true;
+
+    defaultLogic(item): Item {
+        if (item.hasQuality(GildedRose.MIN_QUALITY)) return item;
+        item.decreaseQuality();
+
+        if (item.isExpired() && !item.hasQuality(GildedRose.MIN_QUALITY)) {
+            item.decreaseQuality();
+        }
+
+        return item;
     }
-    
-    isQualityMax(item): boolean {
-        return item.quality === GildedRose.MAX_QUALITY;
+
+    cheeseLogic(item): Item {
+        if (item.hasQuality(GildedRose.MAX_QUALITY)) return item;
+
+        item.increaseQuality();
+        return item;
+    }
+
+    backstagePassLogic(item): Item {
+        if (item.sellIn < 1) {
+            item.quality = GildedRose.MIN_QUALITY;
+            return item;
+        }
+
+        item.increaseQuality();
+        if (item.hasQuality(GildedRose.MAX_QUALITY)) return item;
+
+        if (item.isWithinRange(0,11)) item.increaseQuality();
+        if (item.hasQuality(GildedRose.MAX_QUALITY)) return item;
+
+        if (item.isWithinRange(0,6)) item.increaseQuality();
+        return item;
     }
 
     updateQuality(): Array<Item> {
         return this.items.map(item => {
+            item.sellIn--;
             if (this.handlers.hasOwnProperty(item.name)) {
                 return this.handlers[item.name](item);
             }
