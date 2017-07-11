@@ -19,7 +19,7 @@ Item.prototype['decreaseQuality'] = function() {
 }
 
 Item.prototype['isWithinRange'] = function (low, high) {
-    return this.sellIn > low && this.sellIn < high;
+    return this.sellIn >= low && this.sellIn <= high;
 }
 
 Item.prototype['isExpired'] = function () {
@@ -92,7 +92,7 @@ export class GildedRose {
     }
 
     backstagePassLogic(item): Item {
-        if (item.sellIn < 1) {
+        if (item.sellIn < 0) {
             item.quality = GildedRose.MIN_QUALITY;
             return item;
         }
@@ -100,10 +100,10 @@ export class GildedRose {
         item.increaseQuality();
         if (item.hasQuality(GildedRose.MAX_QUALITY)) return item;
 
-        if (item.isWithinRange(0,11)) item.increaseQuality();
+        if (item.isWithinRange(0,10)) item.increaseQuality();
         if (item.hasQuality(GildedRose.MAX_QUALITY)) return item;
 
-        if (item.isWithinRange(0,6)) item.increaseQuality();
+        if (item.isWithinRange(0,5)) item.increaseQuality();
         return item;
     }
 
