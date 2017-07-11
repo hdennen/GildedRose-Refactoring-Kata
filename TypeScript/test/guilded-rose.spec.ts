@@ -74,7 +74,11 @@ describe('Gilded Rose', function () {
         const items = gildedRose.updateQuality();
         expect(items[0].quality).to.equal(13);
     });
-
-
+    
+    it('"Conjured" Quality does not drop below 0', function() {
+        const gildedRose = new GildedRose([ new Item('Conjured', 7, 1) ]);
+        const items = gildedRose.updateQuality();
+        expect(items[0].quality).to.equal(0);
+    });
 
 });

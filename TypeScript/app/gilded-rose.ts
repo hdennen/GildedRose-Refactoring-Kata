@@ -10,15 +10,15 @@ export class Item {
     }
 }
 
-Item.prototype['increaseQuality'] = function() {
-    this.quality++;
+Item.prototype['increaseQuality'] = function(amount = 1) {
+    this.quality += amount;
 }
 
-Item.prototype['decreaseQuality'] = function() {
-    this.quality--;
+Item.prototype['decreaseQuality'] = function(amount = 1) {
+    this.quality -= amount;
 }
 
-Item.prototype['isWithinRange'] = function (low, high) {
+Item.prototype['isWithinSellRange'] = function (low, high) {
     return this.sellIn >= low && this.sellIn <= high;
 }
 
@@ -46,11 +46,11 @@ export class GildedRose {
         let obj = {};
         
         obj['default'] = (item) => {
-            return this.defaultLogic(item);
+            return this.normalizeQuality(this.defaultLogic(item));
         }
         
         obj['Aged Brie'] = (item) => {
-            return this.cheeseLogic(item);
+            return this.normalizeQuality(this.cheeseLogic(item));
         }
         
         obj['Sulfuras, Hand of Ragnaros'] = (item) => {
@@ -58,11 +58,11 @@ export class GildedRose {
         }
         
         obj['Backstage passes to a TAFKAL80ETC concert'] = (item) => {
-            return this.backstagePassLogic(item);
+            return this.normalizeQuality(this.backstagePassLogic(item));
         }
         
         obj['Conjured'] = (item) => {
-            return this.defaultLogic(this.defaultLogic(item));
+            return this.normalizeQuality(this.defaultLogic(this.defaultLogic(item)));
         }
         
         return obj;
@@ -74,36 +74,27 @@ export class GildedRose {
     }
 
     defaultLogic(item): Item {
-        if (item.hasQuality(GildedRose.MIN_QUALITY)) return item;
-        item.decreaseQuality();
-
-        if (item.isExpired() && !item.hasQuality(GildedRose.MIN_QUALITY)) {
-            item.decreaseQuality();
-        }
-
+        if (item.isWithinSellRange(GildedRose.MIN_QUALITY + 1, GildedRose.MAX_QUALITY)) item.decreaseQuality();
+        if (item.isExpired()) item.decreaseQuality(2);
         return item;
     }
 
     cheeseLogic(item): Item {
-        if (item.hasQuality(GildedRose.MAX_QUALITY)) return item;
-
         item.increaseQuality();
         return item;
     }
 
     backstagePassLogic(item): Item {
-        if (item.sellIn < 0) {
-            item.quality = GildedRose.MIN_QUALITY;
-            return item;
-        }
-
-        item.increaseQuality();
-        if (item.hasQuality(GildedRose.MAX_QUALITY)) return item;
-
-        if (item.isWithinRange(0,10)) item.increaseQuality();
-        if (item.hasQuality(GildedRose.MAX_QUALITY)) return item;
-
-        if (item.isWithinRange(0,5)) item.increaseQuality();
+        if (item.isExpired()) item.quality = GildedRose.MIN_QUALITY;
+        if (item.isWithinSellRange(11, 50)) item.increaseQuality();
+        if (item.isWithinSellRange(6,10)) item.increaseQuality(2);
+        if (item.isWithinSellRange(0,5)) item.increaseQuality(3);
+        return item;
+    }
+    
+    normalizeQuality(item): Item {
+        if (item.quality > GildedRose.MAX_QUALITY) item.quality = GildedRose.MAX_QUALITY;
+        if (item.quality < GildedRose.MIN_QUALITY) item.quality = GildedRose.MIN_QUALITY;
         return item;
     }
 
