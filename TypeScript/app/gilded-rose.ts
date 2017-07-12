@@ -35,13 +35,21 @@ export class GildedRose {
     static MAX_QUALITY = 50;
     static MIN_QUALITY = 0;
     items: Array<Item>;
+    specialTypeRegistry;
     handlers: any;
 
     constructor(items = []) {
         this.items = items;
+        this.specialTypeRegistry = {
+            'cheese': ['Brie'],
+            'legendary': ['Sulfuras'],
+            'backstage': ['Backstage'],
+            'conjured': ['Conjured']
+        }
+
         this.handlers = this.createItemHandlers();
     }
-    
+
     createItemHandlers() {
         let obj = {};
         
@@ -49,19 +57,19 @@ export class GildedRose {
             return this.normalizeQuality(this.defaultLogic(item));
         }
         
-        obj['Aged Brie'] = (item) => {
+        obj['cheese'] = (item) => {
             return this.normalizeQuality(this.cheeseLogic(item));
         }
         
-        obj['Sulfuras, Hand of Ragnaros'] = (item) => {
+        obj['legendary'] = (item) => {
             return this.legendaryLogic(item);
         }
         
-        obj['Backstage passes to a TAFKAL80ETC concert'] = (item) => {
+        obj['backstage'] = (item) => {
             return this.normalizeQuality(this.backstagePassLogic(item));
         }
         
-        obj['Conjured'] = (item) => {
+        obj['conjured'] = (item) => {
             return this.normalizeQuality(this.defaultLogic(this.defaultLogic(item)));
         }
         
@@ -99,12 +107,18 @@ export class GildedRose {
     }
 
     updateQuality(): Array<Item> {
+
         return this.items.map(item => {
             item.sellIn--;
-            if (this.handlers.hasOwnProperty(item.name)) {
-                return this.handlers[item.name](item);
+            for (let prop in this.specialTypeRegistry) {
+                this.specialTypeRegistry[prop].forEach(text => {
+                    let reg = new RegExp(/ + text + /)
+                    if (item.name.match(reg)) {
+                        return this.handlers[prop](item);
+                    }
+                })
             }
-            
+
             return this.handlers.default(item);
         });
     }
